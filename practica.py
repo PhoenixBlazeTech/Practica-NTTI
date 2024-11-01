@@ -19,11 +19,11 @@ def generar_funcion(amplitud=1, frecuencia=1, coeficiente_de_escala=1, desplazam
 
 # Cálculo del ancho de banda (usando la frecuencia más alta - la frecuencia base)
 def calcular_ancho_de_banda(frecuencia_base):
-    return 3 * frecuencia_base - frecuencia_base
+    return 3 * frecuencia_base - frecuencia_base #falta arreglar
 
 # Cálculo de la velocidad de transferencia
 def calcular_velocidad_transferencia(ancho_de_banda):
-    return 2 * ancho_de_banda
+    return 2 * ancho_de_banda #falta arreglar
 
 
 # Crear la figura y la gráfica inicial
