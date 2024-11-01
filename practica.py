@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import TextBox, Button
+from scipy.fft import fft,fftfreq,fftshift
 
 """Generamos la señal usando los parámetros de entrada"""
 def generar_funcion(amplitud=1, frecuencia=1, coeficiente_de_escala=1, desplazamiento_y = 0, tiempo_max=1, num_puntos=1000):
@@ -24,18 +25,7 @@ def calcular_ancho_de_banda(frecuencia_base):
 def calcular_velocidad_transferencia(ancho_de_banda):
     return 2 * ancho_de_banda
 
-'''
-# Crear la figura y la gráfica inicial
-fig, ax = plt.subplots(figsize=(10, 8))
-plt.subplots_adjust(left=0.15, bottom=0.45)
-tiempo, funcion = generar_funcion()
-line, = ax.plot(tiempo, funcion, label="s(t)", color='b')
-ax.set_title("Señal")
-ax.set_xlabel("Tiempo (f)")
-ax.set_ylabel("Amplitud")
-ax.grid(True)
-ax.legend()
-'''
+
 # Crear la figura y la gráfica inicial
 fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
 plt.subplots_adjust(left=0.15, bottom=0.45)
@@ -49,13 +39,29 @@ ax1.set_ylabel("Amplitud")
 ax1.grid(True)
 ax1.legend()
 
+
+#espectro de frecuencia 
+def calcular_espectro(funcion, tiempo):
+    num_puntos=len(funcion)
+    espectro = fft(funcion)
+    frecuencias = fftfreq(num_puntos,d = tiempo[1] - tiempo[0]) 
+    return espectro,frecuencias,num_puntos
+
+
+
+
 # Espectro en frecuencia
-frecuencias = [0, 1, 3]  # Frecuencias de los componentes iniciales
-amplitudes = [1, 4/4, 1/3]  # Amplitudes normalizadas
-line2 = ax2.stem(frecuencias, amplitudes, basefmt=" ", linefmt='r-', markerfmt='ro')
+espectro,frecuencias,num_puntos= calcular_espectro(funcion, tiempo)
+amplitud = (2/num_puntos)*abs(espectro)
+# Define un umbral para los "picos altos", y asi eliminar los bajos
+umbral = 0.1  # Ajusta este valor según necesites
+frecuencias_altas = frecuencias[amplitud > umbral]
+amplitud_alta = amplitud[amplitud > umbral]
+ax2.stem(frecuencias_altas,amplitud_alta,basefmt=" ", linefmt='r-', markerfmt='ro')
 ax2.set_title("Espectro S(f)")
 ax2.set_xlabel("Frecuencia (Hz)")
-ax2.set_ylabel("Amplitud")
+ax2.set_ylabel("Amplitud (normalizada)")
+ax2.set_xlim([0, max(frecuencias) / 50])
 ax2.grid(True)
 
 # Función para actualizar la gráfica con los nuevos valores de parámetros
@@ -70,15 +76,6 @@ def actualizar(val):
         # Generar señal actualizada
         tiempo, nueva_funcion = generar_funcion(amplitud, frecuencia, coeficiente_de_escala, desplazamiento_y)
         
-        '''
-        # Actualizar la gráfica
-        line.set_ydata(nueva_funcion)
-        line.set_xdata(tiempo)
-
-        # Actualizar los límites de los ejes
-        ax.relim()
-        ax.autoscale_view()
-        '''
         
         # Calcular ancho de banda y velocidad de transferencia
         ancho_de_banda = calcular_ancho_de_banda(frecuencia)
@@ -90,18 +87,19 @@ def actualizar(val):
         ax1.relim()
         ax1.autoscale_view()
 
-        # Actualizar el espectro de la señal
-        nuevas_frecuencias = [0, frecuencia, 3 * frecuencia]
-        nuevas_amplitudes = [amplitud, amplitud * (4/4), amplitud * (1/3)]
+        # Calcular nuevo espectro y actualizar la gráfica
+        nuevo_espectro,nuevas_frecuencias, num_puntos= calcular_espectro(nueva_funcion, tiempo)
         ax2.clear()
-        ax2.stem(nuevas_frecuencias, nuevas_amplitudes, basefmt=" ", linefmt='r-', markerfmt='ro')
+        ax2.stem(nuevas_frecuencias,(2/num_puntos)*abs(nuevo_espectro), basefmt=" ", linefmt='r-', markerfmt='ro')
         ax2.set_title("Espectro S(f)")
         ax2.set_xlabel("Frecuencia (Hz)")
-        ax2.set_ylabel("Amplitud")
+        ax2.set_ylabel("Amplitud (normalizada)")
+        ax2.set_xlim([0, max(frecuencias) / 50])
         ax2.grid(True)
-        ax2.text(0.1, max(nuevas_amplitudes) * 0.8, f"Ancho de Banda: {ancho_de_banda} Hz", color="red")
-        ax2.text(0.1, max(nuevas_amplitudes) * 0.6, f"Velocidad de Transferencia: {velocidad_transferencia} bits/s", color="red")
-
+        
+        # Actualizar el texto debajo de los cuadros de entrada
+        text_area.set_text(f"Ancho de Banda: {ancho_de_banda:.2f} Hz | Velocidad de Transferencia: {velocidad_transferencia:.2f} bits/s")
+        
         fig.canvas.draw_idle()
     except ValueError:
         print("Por favor ingrese valores numéricos válidos.")
@@ -122,6 +120,10 @@ text_coeficiente_escala.on_submit(actualizar)
 axbox_desplazamiento_y = plt.axes([0.75, 0.26, 0.1, 0.05])
 text_desplazamiento_y = TextBox(axbox_desplazamiento_y, 'Despl. Y', initial="0")
 text_desplazamiento_y.on_submit(actualizar)
+
+# Texto para mostrar el ancho de banda y velocidad de transferencia
+text_area = plt.figtext(0.5, 0.2, "", ha="center", va="center", fontsize=10, color="blue")
+
 
 plt.show()
 
