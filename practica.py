@@ -90,7 +90,12 @@ def actualizar(val):
         # Calcular nuevo espectro y actualizar la gráfica
         nuevo_espectro,nuevas_frecuencias, num_puntos= calcular_espectro(nueva_funcion, tiempo)
         ax2.clear()
-        ax2.stem(nuevas_frecuencias,(2/num_puntos)*abs(nuevo_espectro), basefmt=" ", linefmt='r-', markerfmt='ro')
+        amplitud = (2/num_puntos)*abs(nuevo_espectro)
+        # Define un umbral para los "picos altos", y asi eliminar los bajos
+        umbral = 0.1  # Ajusta este valor según necesites
+        frecuencias_altas = nuevas_frecuencias[amplitud > umbral]
+        amplitud_alta = amplitud[amplitud > umbral]
+        ax2.stem(frecuencias_altas,amplitud_alta,basefmt=" ", linefmt='r-', markerfmt='ro')
         ax2.set_title("Espectro S(f)")
         ax2.set_xlabel("Frecuencia (Hz)")
         ax2.set_ylabel("Amplitud (normalizada)")
