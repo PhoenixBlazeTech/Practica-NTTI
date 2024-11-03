@@ -17,13 +17,14 @@ def generar_funcion(amplitud=1, frecuencia=1, coeficiente_de_escala=1, desplazam
     return tiempo, funcion
 
 
-# Cálculo del ancho de banda (usando la frecuencia más alta - la frecuencia base)
-def calcular_ancho_de_banda(frecuencia_base):
-    return 3 * frecuencia_base - frecuencia_base #falta arreglar
+
 
 # Cálculo de la velocidad de transferencia
-def calcular_velocidad_transferencia(ancho_de_banda):
-    return 2 * ancho_de_banda #falta arreglar
+def calcular_velocidad_transferencia(frecuencia):
+    T=1/frecuencia
+    Tbit=T/2
+    vt=(1*1)/Tbit
+    return vt
 
 
 # Crear la figura y la gráfica inicial
@@ -61,8 +62,18 @@ ax2.stem(frecuencias_altas,amplitud_alta,basefmt=" ", linefmt='r-', markerfmt='r
 ax2.set_title("Espectro S(f)")
 ax2.set_xlabel("Frecuencia (Hz)")
 ax2.set_ylabel("Amplitud (normalizada)")
-ax2.set_xlim([0, max(frecuencias) / 50])
+ax2.set_xlim([0, max(frecuencias) / 30])
 ax2.grid(True)
+
+# Cálculo del ancho de banda (usando la frecuencia max - la frecuencia min)
+def calcular_ancho_de_banda(frecuencia,frecuencias_altas):
+    frecuencias_positivas=frecuencias_altas[frecuencias_altas>0]
+    frecuencias_positivas=np.round(frecuencias_positivas)
+    #calcular el max y min 
+    frecuencia_maxima = np.max(frecuencias_positivas)
+    frecuencia_minima = np.min(frecuencias_positivas)
+    banda_ancha = (frecuencia_maxima * frecuencia) - (frecuencia_minima * frecuencia)
+    return banda_ancha
 
 # Función para actualizar la gráfica con los nuevos valores de parámetros
 def actualizar(val):
@@ -77,9 +88,8 @@ def actualizar(val):
         tiempo, nueva_funcion = generar_funcion(amplitud, frecuencia, coeficiente_de_escala, desplazamiento_y)
         
         
-        # Calcular ancho de banda y velocidad de transferencia
-        ancho_de_banda = calcular_ancho_de_banda(frecuencia)
-        velocidad_transferencia = calcular_velocidad_transferencia(ancho_de_banda)
+        # Calcular velocidad de transferencia
+        velocidad_transferencia = calcular_velocidad_transferencia(frecuencia)
 
         # Actualizar la gráfica de la señal en el tiempo
         line1.set_ydata(nueva_funcion)
@@ -99,11 +109,14 @@ def actualizar(val):
         ax2.set_title("Espectro S(f)")
         ax2.set_xlabel("Frecuencia (Hz)")
         ax2.set_ylabel("Amplitud (normalizada)")
-        ax2.set_xlim([0, max(frecuencias) / 50])
+        ax2.set_xlim([0, max(frecuencias) / 30])
         ax2.grid(True)
+    
+        #Calcular ancho de banda 
+        ancho_de_banda = calcular_ancho_de_banda(frecuencia,frecuencias_altas)
         
         # Actualizar el texto debajo de los cuadros de entrada
-        text_area.set_text(f"Ancho de Banda: {ancho_de_banda:.2f} Hz | Velocidad de Transferencia: {velocidad_transferencia:.2f} bits/s")
+        text_area.set_text(f"Ancho de Banda: {ancho_de_banda} MHz | Velocidad de Transferencia: {velocidad_transferencia:.2f} Mbps")
         
         fig.canvas.draw_idle()
     except ValueError:
