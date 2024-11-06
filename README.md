@@ -41,7 +41,7 @@ Esta aplicación permite generar y visualizar una señal periodica compuesta pro
     ```
 3. Instala las dependencias:
     ```sh
-    pip install numpy matplotlib
+    pip install numpy matplotlib scipy
     ```
 
 ## Ejecución
